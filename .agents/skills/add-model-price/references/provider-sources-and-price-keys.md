@@ -48,6 +48,15 @@ Always fetch pricing from the provider's official docs before editing.
   and the pricing file but is NOT listed on the official AI Studio pricing page as of
   June 2026. Its prices ($2.00/≤200k, $4.00/>200k input; $12.00/$18.00 output) were
   set when the model was first added; do not update without explicit official evidence.
+  **Update (August 23 2026):** `https://ai.google.dev/gemini-api/docs/models` now
+  explicitly lists both `gemini-3-pro-preview` and `gemini-3.1-flash-lite-preview` as
+  "Shut down" (a firmer status than the prior "still absent from pricing page"
+  finding). Retained both entries unchanged, consistent with how other fully retired
+  models are handled elsewhere in the file (prices kept for historical trace
+  costing, no active pricing verification). This resolves prior unresolved finding
+  "gemini-3.1-flash-lite-preview and gemini-3-pro-preview still absent" with a more
+  precise status; no code change needed either way since retired models are not
+  restored or removed.
 - **Gemini cache-read ratio** — Google Gemini models consistently price cached input at
   10% of the base input price (e.g. Gemini 2.5 Flash: $0.30/MTok input → $0.03/MTok
   cached). If a cache-read price in the file diverges from this ratio, treat it as
@@ -298,6 +307,43 @@ file and `openAIModels`in July 27 2026 audit. Official sources:`https://develope
   applying it to the bare (non-`ft:`) entry — a summarizer can silently pick either table
   when both rows share the same model name.
 
+- **GPT-5.6 Sol price cut (found August 23 2026)** — `gpt-5.6-sol` dropped from
+  $5.00/$0.50/$6.25/$30.00 (input/cached input/cache writes/output) to
+  $4.00/$0.40/$5.00/$20.00 standard, and from $10.00/$1.00/$12.50/$45.00 to
+  $8.00/$0.80/$10.00/$30.00 long-context (>272K), confirmed via three
+  independent fetches: the aggregate `developers.openai.com/api/docs/pricing`
+  table dump, the model's own page
+  `https://developers.openai.com/api/docs/models/gpt-5.6-sol`, and a second
+  targeted re-fetch of the aggregate table asking only for the gpt-5.6-sol row
+  (to rule out a summarizer mixing up neighboring rows). `gpt-5.6-terra`
+  ($2.00/$0.20/$2.50/$12.00) and `gpt-5.6-luna` ($0.20/$0.02/$0.25/$1.20)
+  standard prices were unchanged. The official Fast mode and Flex tables were
+  also re-fetched and confirm the derived-tier formula still holds at the new
+  base price: Fast mode = 2x every dimension of the tier it modifies (e.g.
+  Fast standard = $8.00/$0.80/$10.00/$40.00; Fast · Large context = 2x the
+  Large Context row = $16.00/$1.60/$20.00/$60.00), Flex = 0.5x every dimension
+  (Flex standard = $2.00/$0.20/$2.50/$10.00; Flex · Large context = 0.5x the
+  Large Context row = $4.00/$0.40/$5.00/$15.00). Updated all six pricing tiers
+  on the `gpt-5.6-sol` entry in the August 23 2026 audit; `gpt-5.6-terra` and
+  `gpt-5.6-luna` entries were left unchanged. Lesson: a single broad aggregate
+  pricing-table fetch can occasionally misread one row in an otherwise-correct
+  table dump — when a fetched price contradicts the file and the sibling
+  models in the same family, always re-confirm with the specific model's own
+  page plus a second, narrowly-scoped re-fetch of just that row before trusting
+  either.
+- **`gpt-5-search-api` confirmed real but not added (found August 23 2026)** —
+  A targeted fetch of `developers.openai.com/api/docs/pricing` confirms a
+  "Specialized models" row for `gpt-5-search-api` at $1.25/$0.125/$10.00 per
+  MTok input/cached input/output (identical to `gpt-5`'s rate) — this is a
+  real, currently-listed model. However
+  `https://developers.openai.com/api/docs/models/gpt-5-search-api` returns
+  HTTP 404 (no dedicated model page), and a full `models/all` dump does not
+  list it either, so its exact context window and response/usage-object shape
+  (whether it reuses the standard Chat Completions/Responses usage keys or has
+  a distinct built-in-web-search usage shape, similar to the retired
+  `gpt-4o-search-preview` family) could not be confirmed. Per the
+  usage-key-coverage rule, no pricing or `types.ts` entry was added. Re-check
+  if a dedicated model page appears in a future audit.
 - **Premium speed-tier pricing (`service_tier`/`speed`) is documented for far more
   models than the initial rollout covered (implemented 2026-08-20)** — The
   `model_parameters` tier-condition mechanism landed in PR #16204 (2026-08-18) and was
